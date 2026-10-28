@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard | Security Dashboard</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #0f172a;
+            color: white;
+            padding: 24px 7%;
+        }
+
+        header h1 { margin: 0; font-size: 30px; }
+        header p { color: #cbd5e1; margin-bottom: 0; }
+
+        main {
+            max-width: 1100px;
+            margin: 32px auto;
+            padding: 0 20px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat, .card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 5px 18px rgba(15, 23, 42, 0.06);
+        }
+
+        .stat p { color: #64748b; margin-bottom: 8px; }
+        .stat strong { font-size: 30px; }
+
+        h2 { margin-top: 0; }
+        .description { color: #64748b; line-height: 1.6; }
+
+        label {
+            display: block;
+            margin: 20px 0 10px;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font: inherit;
+            resize: vertical;
+        }
+
+        button {
+            padding: 12px 16px;
+            border: 0;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover { background: #1d4ed8; }
+
+        .analyse { width: 100%; margin-top: 14px; }
+
+        .result, .indicators {
+            margin-top: 20px;
+            padding: 18px;
+            border-radius: 10px;
+        }
+
+        .phishing {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+
+        .legitimate {
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+
+        .indicators {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+        }
+
+        .indicators li { margin: 10px 0; }
+        .score { font-size: 27px; font-weight: bold; }
+
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 13px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th { background: #f8fafc; }
+
+        .tag {
+            display: inline-block;
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .tag-phishing { background: #fee2e2; color: #991b1b; }
+        .tag-legitimate { background: #dcfce7; color: #166534; }
+
+        .clear-form { margin-top: 18px; }
+        .clear-button { background: #475569; }
+        .clear-button:hover { background: #334155; }
+
+        .warning {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        footer {
+            text-align: center;
+            padding: 22px;
+            color: #64748b;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🛡️ PhishGuard</h1>
+        <p>AI-Assisted Phishing Detection Dashboard</p>
+    </header>
+
+    <main>
+        <section class="dashboard">
+            <div class="stat">
+                <p>Total Emails Scanned</p>
+                <strong>{{ total_scans }}</strong>
+            </div>
+
+            <div class="stat">
+                <p>Phishing-Like Detections</p>
+                <strong>{{ phishing_count }}</strong>
+            </div>
+
+            <div class="stat">
+                <p>Other Classifications</p>
+                <strong>{{ total_scans - phishing_count }}</strong>
+            </div>
+                </section>
+
+        <section class="card" style="margin-bottom: 24px;">
+            <h2>Email Classification Overview</h2>
+            <p class="description">
+                Comparison of phishing-like and legitimate-like emails
+                recorded in your scan history.
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; align-items: center;">
+                <div>
+                    <p><strong>Phishing-like</strong>: {{ phishing_count }}</p>
+                    <div style="height: 24px; background: #fee2e2; border-radius: 6px; overflow: hidden;">
+                        <div style="height: 100%; width: {{ (phishing_count / total_scans * 100) if total_scans else 0 }}%; background: #dc2626;"></div>
+                    </div>
+
+                    <p style="margin-top: 20px;"><strong>Legitimate-like</strong>: {{ legitimate_count }}</p>
+                    <div style="height: 24px; background: #dcfce7; border-radius: 6px; overflow: hidden;">
+                        <div style="height: 100%; width: {{ (legitimate_count / total_scans * 100) if total_scans else 0 }}%; background: #16a34a;"></div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 10px;">
+                    <p class="description">Total emails analysed</p>
+                    <strong style="font-size: 36px;">{{ total_scans }}</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Email Security Scanner</h2>
+            <p class="description">
+                Paste an email to get an ML prediction and basic
+                security warning indicators.
+            </p>
+
+            <form method="POST">
+                <label for="email_text">Email Content</label>
+                <textarea
+                    id="email_text"
+                    name="email_text"
+                    placeholder="Paste a sample email here..."
+                    required
+                >{{ email_text or '' }}</textarea>
+
+                <button class="analyse" type="submit">
+                    Analyse Email
+                </button>
+                
+
+<button
+    type="submit"
+    formaction="{{ url_for('download_report') }}"
+    formmethod="POST">
+    Download Analysis Report
+</button>
+
+<button
+    type="submit"
+    formaction="{{ url_for('download_pdf') }}"
+    formmethod="POST">
+    Download PDF Report
+</button>
+            </form>
+
+            {% if result %}
+                <section class="result {% if result == 'PHISHING-LIKE' %}phishing{% else %}legitimate{% endif %}">
+                    <h3>Prediction: {{ result }}</h3>
+                    <p>Estimated phishing probability</p>
+                    <div class="score">{{ phishing_score }}%</div>
+
+                    <p>
+                        This is a model prediction, not a guarantee
+                        that the email is malicious or safe.
+                    </p>
+                </section>
+
+                <section class="indicators">
+                    <h3>Security Warning Indicators</h3>
+                    <ul>
+                        {% for indicator in indicators %}
+                            <li>{{ indicator }}</li>
+                        {% endfor %}
+                    </ul>
+                </section>
+            {% endif %}
+        </section>
+
+        <section class="card" style="margin-top: 24px;">
+            <h2>Recent Scan History</h2>
+            <p class="description">
+                Showing your latest 10 saved scan records.
+            </p>
+
+            {% if recent_scans %}
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date &amp; Time</th>
+                                <th>Prediction</th>
+                                <th>Phishing Score</th>
+                                <th>Email Preview</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for scan in recent_scans %}
+                                <tr>
+                                    <td>{{ scan['timestamp'] }}</td>
+                                    <td>
+                                        {% if scan['prediction'] == 'PHISHING-LIKE' %}
+                                            <span class="tag tag-phishing">
+                                                {{ scan['prediction'] }}
+                                            </span>
+                                        {% else %}
+                                            <span class="tag tag-legitimate">
+                                                {{ scan['prediction'] }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ scan['phishing_score'] }}%</td>
+                                    <td>{{ scan['email_preview'] }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p>No scans recorded yet. Analyse an email to begin.</p>
+            {% endif %}
+
+            <form
+                class="clear-form"
+                method="POST"
+                action="{{ url_for('clear_history') }}"
+                onsubmit="return confirm('Delete all saved scan history?');"
+            >
+                <button class="clear-button" type="submit">
+                    Clear Scan History
+                </button>
+            </form>
+        </section>
+
+        <p class="warning">
+            Educational prototype only. Use sample emails, not confidential
+            messages. History is stored locally in SQLite. Clearing history
+            deletes all scan records from the local database.
+        </p>
+    </main>
+
+    <footer>
+        PhishGuard | Cybersecurity Project
+    </footer>
+</body>
+</html>
