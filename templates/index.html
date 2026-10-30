@@ -215,6 +215,7 @@
                 <label for="email_text">Email Content</label>
                 <textarea
                     id="email_text"
+                    maxlength="5000"
                     name="email_text"
                     placeholder="Paste a sample email here..."
                     required
@@ -263,66 +264,13 @@
             {% endif %}
         </section>
 
-        <section class="card" style="margin-top: 24px;">
-            <h2>Recent Scan History</h2>
-            <p class="description">
-                Showing your latest 10 saved scan records.
-            </p>
-
-            {% if recent_scans %}
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date &amp; Time</th>
-                                <th>Prediction</th>
-                                <th>Phishing Score</th>
-                                <th>Email Preview</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for scan in recent_scans %}
-                                <tr>
-                                    <td>{{ scan['timestamp'] }}</td>
-                                    <td>
-                                        {% if scan['prediction'] == 'PHISHING-LIKE' %}
-                                            <span class="tag tag-phishing">
-                                                {{ scan['prediction'] }}
-                                            </span>
-                                        {% else %}
-                                            <span class="tag tag-legitimate">
-                                                {{ scan['prediction'] }}
-                                            </span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ scan['phishing_score'] }}%</td>
-                                    <td>{{ scan['email_preview'] }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <p>No scans recorded yet. Analyse an email to begin.</p>
-            {% endif %}
-
-            <form
-                class="clear-form"
-                method="POST"
-                action="{{ url_for('clear_history') }}"
-                onsubmit="return confirm('Delete all saved scan history?');"
-            >
-                <button class="clear-button" type="submit">
-                    Clear Scan History
-                </button>
-            </form>
-        </section>
+        
 
         <p class="warning">
-            Educational prototype only. Use sample emails, not confidential
-            messages. History is stored locally in SQLite. Clearing history
-            deletes all scan records from the local database.
-        </p>
+    Educational prototype only. Use sample emails, not confidential
+    messages. Scan statistics are shared across this public demonstration
+    and may reset when the application restarts.
+</p>
     </main>
 
     <footer>

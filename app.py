@@ -13,6 +13,7 @@ MODEL_PATH = BASE_DIR / "phishguard_model.joblib"
 DATABASE_PATH = BASE_DIR / "phishguard_history.db"
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 64 * 1024
 
 if not MODEL_PATH.exists():
     raise FileNotFoundError(
@@ -124,18 +125,23 @@ def analyze_indicators(email_text):
 
 
 @app.route("/", methods=["GET", "POST"])
-def home():
+def home(): 
     result = None
     phishing_score = None
     email_text = ""
     indicators = []
 
+    
     if request.method == "POST":
         email_text = request.form.get(
             "email_text", ""
         ).strip()
 
+        if len(email_text) > 5000:
+            return "Email text is too long. Please limit it to 5,000 characters.", 400
+
         if email_text:
+
             prediction = model.predict([email_text])[0]
             probabilities = model.predict_proba([email_text])[0]
 
@@ -222,7 +228,11 @@ def download_report():
 
     email_text = request.form.get("email_text", "").strip()
 
+    if len(email_text) > 5000:
+        return "Email text is too long. Please limit it to 5,000 characters.", 400
+
     if not email_text:
+        return redirect(url_for("home"))
         return redirect(url_for("home"))
 
     # Run the existing machine-learning model
@@ -345,6 +355,9 @@ def download_pdf():
     from datetime import datetime
 
     email_text = request.form.get("email_text", "").strip()
+
+    if len(email_text) > 5000:
+        return "Email text is too long. Please limit it to 5,000 characters.", 400
 
     if not email_text:
         return redirect(url_for("home"))
@@ -497,15 +510,6 @@ def download_pdf():
     )
 
     return response
-
-
-
-@app.route("/clear-history", methods=["POST"])
-def clear_history():
-    with get_db() as connection:
-        connection.execute("DELETE FROM scan_history")
-
-    return redirect(url_for("home"))
 
 
 
