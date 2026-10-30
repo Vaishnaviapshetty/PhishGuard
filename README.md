@@ -113,13 +113,15 @@ GitHub: https://github.com/Vaishnaviapshetty
 
 ---
 
+---
+
 ## 📸 Project Screenshots
 
 ### 1. PhishGuard Dashboard
-![PhishGuard Dashboard](dashboard.png)
+![PhishGuard Dashboard](dashboard.png.png)
 
 ### 2. Email Analysis Result
-![Email Analysis](email-analysis.png)
+![Email Analysis](email-analysis.png.png)
 
 ### 3. PDF Analysis Report
-![PDF Analysis Report](pdf-report.png)
+![PDF Analysis Report](pdf-report.png.png)
