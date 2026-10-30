@@ -1,3 +1,12 @@
+![Python](https://img.shields.io/badge/Python-3.15-blue?logo=python)
+![Flask](https://img.shields.io/badge/Flask-3.1-black?logo=flask)
+![Machine Learning](https://img.shields.io/badge/Machine%20Learning-Scikit--learn-orange)
+![SQLite](https://img.shields.io/badge/Database-SQLite-blue?logo=sqlite)
+![Deployment](https://img.shields.io/badge/Deployed-Render-purple?logo=render)
+
+# 🛡️ PhishGuard – AI-Powered Phishing Email Detection System
+
+Your existing README content continues below this title...
 # 🛡️ PhishGuard – AI-Based Phishing Email Detection
 
 PhishGuard is a machine-learning-based web application designed to identify potentially malicious phishing emails. It analyses email content, predicts whether an email is phishing-like or legitimate-like, and highlights suspicious indicators to help users understand potential email threats.
