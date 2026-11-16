@@ -212,6 +212,7 @@
             </p>
 
             <form method="POST">
+                <input type="hidden" name="form_type" value="email_analysis">
                 <label for="email_text">Email Content</label>
                 <textarea
                     id="email_text"
@@ -226,11 +227,12 @@
                 </button>
                 
 
+
 <button
     type="submit"
     formaction="{{ url_for('download_report') }}"
     formmethod="POST">
-    Download Analysis Report
+    Download HTML Report
 </button>
 
 <button
@@ -239,6 +241,7 @@
     formmethod="POST">
     Download PDF Report
 </button>
+
             </form>
 
             {% if result %}
@@ -261,6 +264,42 @@
                         {% endfor %}
                     </ul>
                 </section>
+                                {% if url_results %}
+                    <section class="indicators">
+                        <h3>URL Threat Analysis</h3>
+
+                        <p class="description">
+                            Basic security checks performed on URLs found in the email.
+                        </p>
+
+                        {% for item in url_results %}
+                            <div style="margin-bottom: 18px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+
+                                <p style="font-weight: bold; overflow-wrap: anywhere;">
+                                    URL: {{ item.url }}
+                                </p>
+                                <p style="font-weight: bold; font-size: 18px;">
+    URL Risk Score: {{ item.risk_score }}/100
+</p>
+
+<p style="font-weight: bold; color:
+    {% if item.risk_level == 'CRITICAL' %}#991b1b
+    {% elif item.risk_level == 'HIGH' %}#dc2626
+    {% elif item.risk_level == 'MEDIUM' %}#d97706
+    {% else %}#15803d{% endif %};">
+    Risk Level: {{ item.risk_level }}
+</p>    
+
+                                <ul>
+                                    {% for finding in item.findings %}
+                                        <li>{{ finding }}</li>
+                                    {% endfor %}
+                                </ul>
+
+                            </div>
+                        {% endfor %}
+                    </section>
+                {% endif %}
             {% endif %}
         </section>
 
