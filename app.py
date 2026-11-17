@@ -50,6 +50,7 @@ def get_db():
     return connection
 
 
+
 def initialize_database():
     with get_db() as connection:
         connection.execute("""
@@ -58,9 +59,25 @@ def initialize_database():
                 timestamp TEXT NOT NULL,
                 prediction TEXT NOT NULL,
                 phishing_score REAL NOT NULL,
-                email_preview TEXT NOT NULL
+                email_preview TEXT NOT NULL,
+                email_text TEXT NOT NULL DEFAULT ''
             )
         """)
+
+        # Add email_text to existing databases if it is missing
+        columns = [
+            row["name"]
+            for row in connection.execute(
+                "PRAGMA table_info(scan_history)"
+            ).fetchall()
+        ]
+
+        if "email_text" not in columns:
+            connection.execute("""
+                ALTER TABLE scan_history
+                ADD COLUMN email_text TEXT NOT NULL DEFAULT ''
+            """)
+
 
 
 initialize_database()
@@ -411,26 +428,28 @@ def home():
 
         indicators = analyze_indicators(email_text)
         url_results = analyze_url_threats(email_text)
+
         preview = " ".join(email_text.split())[:120]
 
         with get_db() as connection:
-            connection.execute(
-                """
+            cursor = connection.execute("""
                 INSERT INTO scan_history
-                (timestamp, prediction, phishing_score, email_preview)
-                VALUES (datetime('now', 'localtime'), ?, ?, ?)
-                """,
-                (result, phishing_score, preview),
-            )
+                (timestamp, prediction, phishing_score, email_preview, email_text)
+                VALUES (datetime('now', 'localtime'), ?, ?, ?, ?)
+            """, (result, phishing_score, preview, email_text))
+
+            scan_id = cursor.lastrowid
 
         session["latest_analysis"] = {
             "result": result,
+            "scan_id": scan_id,
             "phishing_score": phishing_score,
             "indicators": indicators,
             "url_results": url_results,
         }
 
         return redirect(url_for("home"))
+
 
     analysis = session.get("latest_analysis", {})
 
@@ -488,51 +507,41 @@ def home():
 # HTML REPORT DOWNLOAD
 # --------------------------------------------------
 
+
 @app.route("/download-report", methods=["POST"])
 def download_report():
 
     from html import escape
     from datetime import datetime
 
-    email_text = request.form.get(
-        "email_text", ""
-    ).strip()
+    # Retrieve the latest saved analysis
+    analysis = session.get("latest_analysis")
 
-    if len(email_text) > 5000:
-        return (
-            "Email text is too long. "
-            "Please limit it to 5,000 characters.",
-            400,
-        )
-
-    if not email_text:
+    if not analysis or not analysis.get("scan_id"):
         return redirect(url_for("home"))
 
-    # Run machine-learning model
-    prediction = model.predict([email_text])[0]
-    probabilities = model.predict_proba([email_text])[0]
+    # Retrieve the original email from SQLite
+    with get_db() as connection:
+        row = connection.execute(
+            "SELECT email_text FROM scan_history WHERE id = ?",
+            (analysis["scan_id"],)
+        ).fetchone()
 
-    classes = list(model.named_steps["classifier"].classes_)
+    if row is None or not row["email_text"]:
+        return redirect(url_for("home"))
 
-    phishing_score = round(
-        float(probabilities[classes.index(1)]) * 100,
-        1,
-    )
+    email_text = row["email_text"]
 
-    result = (
-        "PHISHING-LIKE"
-        if prediction == 1
-        else "LEGITIMATE-LIKE"
-    )
-
-    indicators = analyze_indicators(email_text)
-    url_results = analyze_url_threats(email_text)
+    # Reuse the original analysis results
+    result = analysis["result"]
+    phishing_score = analysis["phishing_score"]
+    indicators = analysis["indicators"]
+    url_results = analysis["url_results"]
 
     scan_time = datetime.now().astimezone().strftime(
         "%d %B %Y, %I:%M:%S %p %Z"
     )
 
-    # Escape user-supplied content
     safe_email = escape(email_text)
     safe_result = escape(result)
 
@@ -541,11 +550,9 @@ def download_report():
         for indicator in indicators
     )
 
-    # Prepare URL analysis results
     safe_url_results = ""
 
     if url_results:
-
         for item in url_results:
 
             safe_url = escape(item["url"])
@@ -565,7 +572,6 @@ def download_report():
                     <ul>{safe_findings}</ul>
                 </div>
             """
-
     else:
         safe_url_results = (
             "<p>No URLs were detected in this email.</p>"
@@ -682,55 +688,45 @@ def download_report():
     return response
 
 
+
 # --------------------------------------------------
 # PDF REPORT DOWNLOAD
 # --------------------------------------------------
+
 
 @app.route("/download-pdf", methods=["POST"])
 def download_pdf():
 
     from datetime import datetime
 
-    email_text = request.form.get(
-        "email_text", ""
-    ).strip()
-   
+    # Retrieve the latest saved analysis
+    analysis = session.get("latest_analysis")
 
-    if len(email_text) > 5000:
-        return (
-            "Email text is too long. "
-            "Please limit it to 5,000 characters.",
-            400,
-        )
-
-    if not email_text:
+    if not analysis or not analysis.get("scan_id"):
         return redirect(url_for("home"))
 
-    # Run machine-learning model
-    prediction = model.predict([email_text])[0]
-    probabilities = model.predict_proba([email_text])[0]
+    # Retrieve the original email from SQLite
+    with get_db() as connection:
+        row = connection.execute(
+            "SELECT email_text FROM scan_history WHERE id = ?",
+            (analysis["scan_id"],)
+        ).fetchone()
 
-    classes = list(model.named_steps["classifier"].classes_)
+    if row is None or not row["email_text"]:
+        return redirect(url_for("home"))
 
-    phishing_score = round(
-        float(probabilities[classes.index(1)]) * 100,
-        1,
-    )
+    email_text = row["email_text"]
 
-    result = (
-        "PHISHING-LIKE"
-        if prediction == 1
-        else "LEGITIMATE-LIKE"
-    )
-
-    indicators = analyze_indicators(email_text)
-    url_results = analyze_url_threats(email_text)
+    # Reuse the original analysis results
+    result = analysis["result"]
+    phishing_score = analysis["phishing_score"]
+    indicators = analysis["indicators"]
+    url_results = analysis["url_results"]
 
     scan_time = datetime.now().astimezone().strftime(
         "%d %B %Y, %I:%M:%S %p %Z"
     )
 
-    # PDF libraries
     from reportlab.lib import colors
     from reportlab.lib.enums import TA_CENTER
     from reportlab.lib.pagesizes import A4
@@ -745,7 +741,6 @@ def download_pdf():
         Spacer,
         Table,
         TableStyle,
-        Preformatted,
     )
 
     pdf_buffer = BytesIO()
@@ -777,6 +772,16 @@ def download_pdf():
         fontSize=8,
         leading=11,
         textColor=colors.HexColor("#555555"),
+    ))
+
+    styles.add(ParagraphStyle(
+        name="EmailText",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=9,
+        leading=13,
+        spaceAfter=6,
+        wordWrap="CJK",
     ))
 
     story = [
@@ -827,15 +832,12 @@ def download_pdf():
     ])
 
     for indicator in indicators:
-
         story.append(Paragraph(
             "&#8226; " + xml_escape(indicator),
             styles["BodyText"],
         ))
-
         story.append(Spacer(1, 4))
 
-    # URL Threat Analysis
     story.extend([
         Spacer(1, 10),
         Paragraph(
@@ -845,7 +847,6 @@ def download_pdf():
     ])
 
     if url_results:
-
         for item in url_results:
 
             story.append(Paragraph(
@@ -861,7 +862,6 @@ def download_pdf():
             ))
 
             for finding in item["findings"]:
-
                 story.append(Paragraph(
                     "&#8226; " + xml_escape(finding),
                     styles["BodyText"],
@@ -870,13 +870,11 @@ def download_pdf():
             story.append(Spacer(1, 8))
 
     else:
-
         story.append(Paragraph(
             "No URLs were detected in this email.",
             styles["BodyText"],
         ))
 
-    # Analysed Email
     story.extend([
         Spacer(1, 10),
         Paragraph(
@@ -885,15 +883,7 @@ def download_pdf():
         ),
         Paragraph(
             xml_escape(email_text).replace("\n", "<br/>"),
-            ParagraphStyle(
-                "EmailText",
-                parent=styles["BodyText"],
-                fontName="Helvetica",
-                fontSize=9,
-                leading=13,
-                spaceAfter=6,
-                wordWrap="CJK",
-            ),
+            styles["EmailText"],
         ),
         Spacer(1, 14),
         Paragraph(
@@ -905,13 +895,10 @@ def download_pdf():
         ),
     ])
 
-    # Generate the actual PDF
     document.build(story)
 
     pdf_buffer.seek(0)
     pdf_data = pdf_buffer.getvalue()
-
-
 
     if not pdf_data:
         return "PDF generation failed. Empty PDF data.", 500
@@ -925,6 +912,7 @@ def download_pdf():
     )
 
     return response
+
 
 
 # --------------------------------------------------

@@ -228,20 +228,23 @@
                 
 
 
-<button
-    type="submit"
-    formaction="{{ url_for('download_report') }}"
-    formmethod="POST">
-    Download HTML Report
-</button>
+</form>
 
-<button
-    type="submit"
-    formaction="{{ url_for('download_pdf') }}"
-    formmethod="POST">
-    Download PDF Report
-</button>
+<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px;">
 
+    <form action="{{ url_for('download_report') }}" method="POST">
+        <button type="submit">
+            Download HTML Report
+        </button>
+    </form>
+
+    <form action="{{ url_for('download_pdf') }}" method="POST">
+        <button type="submit">
+            Download PDF Report
+        </button>
+    </form>
+
+</div>
             </form>
 
             {% if result %}
