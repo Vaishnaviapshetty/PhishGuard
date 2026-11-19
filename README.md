@@ -1,28 +1,20 @@
-![Python](https://img.shields.io/badge/Python-3.15-blue?logo=python)
-![Flask](https://img.shields.io/badge/Flask-3.1-black?logo=flask)
-![Machine Learning](https://img.shields.io/badge/Machine%20Learning-Scikit--learn-orange)
-![SQLite](https://img.shields.io/badge/Database-SQLite-blue?logo=sqlite)
-![Deployment](https://img.shields.io/badge/Deployed-Render-purple?logo=render)
+# 🛡️ PhishGuard – AI-Assisted Phishing Email Detection System
 
-# 🛡️ PhishGuard – AI-Powered Phishing Email Detection System
-
-Your existing README content continues below this title...
-# 🛡️ PhishGuard – AI-Based Phishing Email Detection
-
-PhishGuard is a machine-learning-based web application designed to identify potentially malicious phishing emails. It analyses email content, predicts whether an email is phishing-like or legitimate-like, and highlights suspicious indicators to help users understand potential email threats.
+PhishGuard is a machine-learning-based web application designed to identify potentially malicious phishing emails. It analyses submitted email content, predicts whether an email is **PHISHING-LIKE** or **LEGITIMATE-LIKE**, and highlights suspicious indicators to help users understand potential email threats.
 
 🌐 **Live Demo:** https://phishguard-wu9x.onrender.com
 
 ## 🚀 Features
 
-- **Machine Learning Detection:** Analyses email text and predicts phishing-like or legitimate-like messages.
-- **Phishing Probability Score:** Displays a prediction score to help users understand the model's assessment.
-- **Security Warning Indicators:** Highlights suspicious URLs, urgency-related language, and sensitive-information requests.
+- **Machine Learning Detection:** Classifies email content as phishing-like or legitimate-like using a trained machine learning model.
+- **Phishing Probability Score:** Displays the model's estimated phishing probability.
+- **Security Warning Indicators:** Identifies suspicious URLs, urgency-related language and sensitive-information requests.
+- **URL Threat Analysis:** Checks URLs for suspicious characteristics, including HTTP usage, URL shorteners, IP addresses, unusual ports, suspicious keywords and lookalike domains.
 - **Interactive Dashboard:** Displays scan statistics and a phishing-versus-legitimate classification chart.
 - **HTML Analysis Reports:** Generates downloadable email analysis reports.
 - **PDF Analysis Reports:** Generates downloadable PDF reports.
-- **SQLite Database:** Stores scan statistics for the dashboard.
-- **Input Validation:** Applies server-side email length validation and request-size restrictions.
+- **SQLite Database:** Stores scan history and dashboard statistics.
+- **Input Validation:** Includes email length validation and request-size restrictions.
 
 ## 🧰 Technologies Used
 
@@ -33,7 +25,7 @@ PhishGuard is a machine-learning-based web application designed to identify pote
 | Scikit-learn | Machine learning |
 | Pandas | Dataset processing |
 | Joblib | Model storage and loading |
-| SQLite | Scan statistics storage |
+| SQLite | Scan history storage |
 | HTML & CSS | Frontend interface |
 | ReportLab | PDF report generation |
 | Render | Application deployment |
@@ -41,24 +33,52 @@ PhishGuard is a machine-learning-based web application designed to identify pote
 
 ## ⚙️ How It Works
 
-1. User enters email content into the PhishGuard scanner.
-2. The application processes the submitted email text.
+1. The user enters email content into the PhishGuard scanner.
+2. Flask processes the submitted email text.
 3. The trained machine learning model predicts the email category.
-4. The application calculates a phishing probability score.
-5. Security checks identify suspicious URLs, urgency-related terms, and sensitive-information requests.
-6. The dashboard displays the analysis results.
-7. Users can download the analysis as an HTML or PDF report.
+4. The application displays the estimated phishing probability.
+5. Security checks analyse the email for suspicious language and potential threats.
+6. Extracted URLs are evaluated for suspicious characteristics.
+7. The dashboard displays scan statistics and analysis results.
+8. Users can download the analysis as an HTML or PDF report.
+
+## 🔍 URL Threat Analysis
+
+PhishGuard includes a rule-based URL analysis component that checks for potentially suspicious URL characteristics.
+
+It checks for:
+
+- HTTP connections.
+- IP addresses used in URLs.
+- URL shorteners.
+- Lookalike domains, such as `paypa1.com`.
+- Suspicious URL keywords such as `login`, `verify` and `secure`.
+- Unusual or invalid port numbers.
+- Other suspicious URL patterns.
+
+The application assigns a risk score and categorises detected URL risks into four levels:
+
+| Risk Level | Score |
+|---|---:|
+| LOW | Below 25 |
+| MEDIUM | 25–49 |
+| HIGH | 50–74 |
+| CRITICAL | 75–100 |
+
+These checks are intended to highlight suspicious characteristics, not to establish whether a URL is definitively malicious.
 
 ## 📊 Model Performance
 
-The model was evaluated using a held-out test dataset.
+The machine learning model was evaluated using a held-out test dataset.
 
-- **Dataset:** 17,522 cleaned and usable email records.
-- **Training samples:** 14,017.
-- **Testing samples:** 3,505.
-- **Accuracy:** Approximately 98.15%.
+| Evaluation Metric | Result |
+|---|---:|
+| Cleaned dataset | 17,522 emails |
+| Training samples | 14,017 |
+| Testing samples | 3,505 |
+| Accuracy | 98.15% |
 
-*Note: These are results from the project's evaluation dataset. They do not guarantee the same accuracy on real-world emails.*
+**Note:** These results are based on the project's evaluation dataset. They do not guarantee the same performance on real-world emails. Model predictions may produce false positives or false negatives.
 
 ## 💻 Installation and Setup
 
@@ -86,7 +106,9 @@ pip install -r requirements.txt
 python app.py
 ```
 
-### 5. Open in your browser
+### 5. Open the application
+
+Visit the following address in your browser:
 
 ```text
 http://127.0.0.1:5000
@@ -95,18 +117,32 @@ http://127.0.0.1:5000
 ## 🔐 Security and Limitations
 
 - PhishGuard is an educational cybersecurity project and is not a replacement for enterprise email security systems.
-- Model predictions and security indicators may produce false positives or false negatives.
+- Machine learning predictions and rule-based security checks may produce false positives or false negatives.
 - Avoid submitting confidential or personally identifiable email content to the public demonstration.
-- Dashboard statistics are shared across the public demonstration.
-- The application should receive further security testing before production use.
+- Dashboard statistics are shared across the public demonstration and may reset when the application restarts.
+- The application requires further security testing before production use.
 
 ## 🔮 Future Enhancements
 
-- Advanced URL reputation analysis.
-- Domain and sender authentication checks.
+- Integration with external URL reputation services.
+- Email sender and domain authentication checks.
 - Improved phishing detection using additional datasets.
-- More detailed threat analysis.
+- More detailed threat analysis and reporting.
 - Enhanced application security and access controls.
+
+## 📸 Project Screenshots
+
+### 1. PhishGuard Dashboard
+
+![PhishGuard Dashboard](dashboard.png.png)
+
+### 2. Email Analysis Result
+
+![Email Analysis](email-analysis.png.png)
+
+### 3. PDF Analysis Report
+
+![PDF Analysis Report](pdf-report.png.png)
 
 ## 👩‍💻 Developer
 
@@ -119,18 +155,3 @@ GitHub: https://github.com/Vaishnaviapshetty
 ---
 
 ⭐ If you find this project interesting, consider starring the repository!
-
----
-
----
-
-## 📸 Project Screenshots
-
-### 1. PhishGuard Dashboard
-![PhishGuard Dashboard](dashboard.png.png)
-
-### 2. Email Analysis Result
-![Email Analysis](email-analysis.png.png)
-
-### 3. PDF Analysis Report
-![PDF Analysis Report](pdf-report.png.png)
